@@ -1,13 +1,13 @@
 from flask import Flask
-from flask_restful import Resource, Api
+from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
-
+# done:数据库操作
 app = Flask(__name__)
 api = Api(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:CJ2938cj@119.8.60.213:23306/DemoServerDB'
 db = SQLAlchemy(app)
 
-
+# done:创建用户数据表
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
@@ -18,25 +18,13 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
 
+# done:创建测试用例数据表
+class TestCase(db.Model):
+    __tablename__ = 'testcase'
+    id = db.Column(db.Integer, primary_key=True)
+    casename = db.Column(db.String(80), unique=True, nullable=False)
+    description = db.Column(db.String(1024), unique=False, nullable=False)
+    date = db.Column(db.String(1024), unique=False, nullable=False)
 
-class HelloWorld(Resource):
-    def get(self):
-        return {'Hello': 'World!'}
-
-
-class Login(Resource):
-    def get(self):
-        return {'Hello': 'World!'}
-
-
-class TestCase(Resource):
-    def get(self):
-        return {'Hello': 'World!'}
-
-
-api.add_resource(HelloWorld, '/')
-api.add_resource(Login, '/login')
-api.add_resource(TestCase, '/testcase')
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    def __repr__(self):
+        return '<TestCase %r>' % self.casename
