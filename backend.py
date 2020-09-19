@@ -1,13 +1,15 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Resource, Api
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 api = Api(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:CJ2938cj@119.8.60.213:23306/DemoServerDB'
+# 配置数据库
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@119.8.60.213:23306/DemoServerDB'
 db = SQLAlchemy(app)
 
 
+# done:用户数据表
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
@@ -19,24 +21,70 @@ class User(db.Model):
         return '<User %r>' % self.username
 
 
+# done:测试用例数据表
+class TestCase(db.Model):
+    __tablename__ = 'testcase'
+    id = db.Column(db.Integer, primary_key=True)
+    casename = db.Column(db.String(80), unique=True, nullable=False)
+    description = db.Column(db.String(1024), unique=False, nullable=False)
+    data = db.Column(db.String(1024), unique=False, nullable=False)
+
+    def __repr__(self):
+        return '<TestCase %r>' % self.casename
+
+
 class HelloWorld(Resource):
     def get(self):
         return {'Hello': 'World!'}
 
 
-class Login(Resource):
+class LoginApi(Resource):
     def get(self):
-        return {'Hello': 'World!'}
+        res = {}
+        for i in User.query.all():
+            res['id'] = i.id
+            res['name'] = i.username
+            res['email'] = i.email
+        return res
+
+    def post(self):
+        pass
 
 
-class TestCase(Resource):
+class TestCaseApi(Resource):
     def get(self):
-        return {'Hello': 'World!'}
+        res = {}
+        for i in TestCase.query.all():
+            res['id'] = i.id
+            res['casename'] = i.casename
+            res['description'] = i.description
+            res['data'] = i.data
+        return res
+
+    def post(self):
+        '''
+        测试命令:curl http://127.0.0.1:5000/testcase -d '{"casename":"testdemo","description":"test description","data":"test data"}' -H 'content-type: application/json
+        :return:
+        '''
+        t = TestCase(casename=request.json['casename'],
+                     description=request.json['description'],
+                     data=request.json['data'])
+        db.session.add(t)
+        db.session.commit()
+        return {
+            'msg': 'ok'
+        }
+
+    def put(self):
+        pass
+
+    def delete(self):
+        pass
 
 
 api.add_resource(HelloWorld, '/')
-api.add_resource(Login, '/login')
-api.add_resource(TestCase, '/testcase')
+api.add_resource(LoginApi, '/login')
+api.add_resource(TestCaseApi, '/testcase')
 
 if __name__ == '__main__':
     app.run(debug=True)
