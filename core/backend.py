@@ -5,6 +5,12 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 api = Api(app)
 # 配置数据库
+'''
+Python Console中输入如下命令创建表
+
+from core.backend import db
+db.create_all()
+'''
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@119.8.60.213:23306/DemoServerDB'
 db = SQLAlchemy(app)
 
@@ -43,12 +49,19 @@ class LoginApi(Resource):
         res = {}
         for i in User.query.all():
             res['id'] = i.id
-            res['name'] = i.username
+            res['username'] = i.username
             res['email'] = i.email
         return res
 
     def post(self):
-        pass
+        t = User(username=request.json['username'],
+                 password=request.json['password'],
+                 email=request.json['email'])
+        db.session.add(t)
+        db.session.commit()
+        return {
+            'msg': 'ok'
+        }
 
 
 class TestCaseApi(Resource):
