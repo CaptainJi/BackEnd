@@ -68,7 +68,6 @@ class LoginApi(Resource):
                 errcode=1,
                 errmsg='用户名或密码错'
             )
-
         else:
             # done: 生成token
             return {
@@ -78,11 +77,17 @@ class LoginApi(Resource):
                 'token': create_access_token(identity=user.username)
             }
 
+    # todo: 注册用户
+    def put(self):
+        pass
 
+    # todo：注销
+    def delete(self):
+        pass
 
 
 class TestCaseApi(Resource):
-    @jwt_required
+    # @jwt_required
     def get(self):
         res = {}
         for i in TestCase.query.all():
@@ -92,7 +97,7 @@ class TestCaseApi(Resource):
             res['data'] = i.data
         return res
 
-    @jwt_required
+    # @jwt_required
     def post(self):
         '''
         测试命令:curl http://127.0.0.1:5000/testcase -d '{"casename":"testdemo","description":"test description","data":"test data"}' -H 'content-type: application/json
@@ -107,13 +112,46 @@ class TestCaseApi(Resource):
             'msg': 'ok'
         }
 
-    @jwt_required
+    # done:更新用例
+    # @jwt_required
     def put(self):
-        pass
+        casename = request.json.get('casename', None)
+        description = request.json.get('description', None)
+        update_casename=request.json.get('update_casename', None)
+        update_description = request.json.get('update_description', None)
+        update_data=request.json.get('update_data', None)
 
-    @jwt_required
+        t = TestCase.query.filter_by(casename=casename, description=description).first()
+        if t is None:
+            return jsonify(
+                errcode=1,
+                errmsg='用例不存在')
+        else:
+            t.casename = update_casename
+            t.description = update_description
+            t.data = update_data
+            db.session.commit()
+            return {
+                'msg': 'update success'
+            }
+
+    # todo：删除用例
+    # @jwt_required
     def delete(self):
-        pass
+        casename = request.json.get('casename', None)
+        description = request.json.get('description', None)
+        t = TestCase.query.filter_by(casename=casename, description=description).first()
+        if t is None:
+            return jsonify(
+                errcode=1,
+                errmsg='用例不存在')
+        else:
+            db.session.delete(t)
+            db.session.commit()
+            return {
+                'msg': 'delete success'
+            }
+
 
 
 api.add_resource(HelloWorld, '/')
