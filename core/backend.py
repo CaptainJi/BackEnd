@@ -1,9 +1,13 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from flask_restful import Resource, Api
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+# 配置json转ASCII编码已解决返回json中中文的UTF-8编码问题
+app.config['JSON_AS_ASCII'] = False
 api = Api(app)
+
 # 配置数据库
 '''
 Python Console中输入如下命令创建表
@@ -13,6 +17,9 @@ db.create_all()
 '''
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@119.8.60.213:23306/DemoServerDB'
 db = SQLAlchemy(app)
+# token管理
+app.config['JWT_SECRET_KEY'] = 'TestPlatform'
+jwt = JWTManager(app)
 
 
 # done:用户数据表
@@ -46,25 +53,36 @@ class HelloWorld(Resource):
 
 class LoginApi(Resource):
     def get(self):
-        res = {}
-        for i in User.query.all():
-            res['id'] = i.id
-            res['username'] = i.username
-            res['email'] = i.email
-        return res
+        return {'Hello': 'World!'}
 
     def post(self):
-        t = User(username=request.json['username'],
-                 password=request.json['password'],
-                 email=request.json['email'])
-        db.session.add(t)
-        db.session.commit()
-        return {
-            'msg': 'ok'
-        }
+        # todo: 查询数据库
+        username = request.json.get('username', None)
+        # todo: 通常密码不建议原文存储
+        password = request.json.get('password', None)
+        user = User.query.filter_by(username=username, password=password).first()
+        # done: 生成返回结构体
+        if user is None:
+            # 使用jsonify传回json体,输出中文
+            return jsonify(
+                errcode=1,
+                errmsg='用户名或密码错'
+            )
+
+        else:
+            # done: 生成token
+            return {
+                'errcode': 0,
+                'errmsg': 'ok',
+                'username': user.username,
+                'token': create_access_token(identity=user.username)
+            }
+
+
 
 
 class TestCaseApi(Resource):
+    @jwt_required
     def get(self):
         res = {}
         for i in TestCase.query.all():
@@ -74,6 +92,7 @@ class TestCaseApi(Resource):
             res['data'] = i.data
         return res
 
+    @jwt_required
     def post(self):
         '''
         测试命令:curl http://127.0.0.1:5000/testcase -d '{"casename":"testdemo","description":"test description","data":"test data"}' -H 'content-type: application/json
@@ -88,9 +107,11 @@ class TestCaseApi(Resource):
             'msg': 'ok'
         }
 
+    @jwt_required
     def put(self):
         pass
 
+    @jwt_required
     def delete(self):
         pass
 

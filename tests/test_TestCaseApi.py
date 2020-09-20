@@ -12,3 +12,11 @@ def test_add():
                         })
     assert res.status_code == 200
     assert res.json()['msg'] == 'ok'
+
+
+def test_testcase_get():
+    res = requests.get(
+        'http://127.0.0.1:5000/testcase'
+    )
+    print(res.json())
+    assert res.status_code == 200

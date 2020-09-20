@@ -1,14 +1,22 @@
-import datetime
-
 import requests
 
 
-def test_add():
+def test_login_post():
+    username = 'captain'
+    password = '1'
     res = requests.post('http://127.0.0.1:5000/login',
                         json={
-                            'username': f'username{str(datetime.datetime.now())}',
-                            'password': '12345678',
-                            'email': 'test@test.com'
+                            'username': username,
+                            'password': password
                         })
+    print(res.text)
     assert res.status_code == 200
-    assert res.json()['msg'] == 'ok'
+    token = res.json()['token']
+    assert token is not None
+
+    res = requests.get(
+        'http://127.0.0.1:5000/testcase',
+        headers={'Authorization': f'Bearer {token}'}
+    )
+    print(res.json())
+    assert res.status_code == 200
