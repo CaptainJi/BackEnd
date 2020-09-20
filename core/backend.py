@@ -56,7 +56,7 @@ class LoginApi(Resource):
         return {'Hello': 'World!'}
 
     def post(self):
-        # todo: 查询数据库
+        # done: 查询数据库
         username = request.json.get('username', None)
         # todo: 通常密码不建议原文存储
         password = request.json.get('password', None)
@@ -135,7 +135,7 @@ class TestCaseApi(Resource):
                 'msg': 'update success'
             }
 
-    # todo：删除用例
+    # done：删除用例
     # @jwt_required
     def delete(self):
         casename = request.json.get('casename', None)
