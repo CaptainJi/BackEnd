@@ -10,7 +10,7 @@ from handleDB import db
 db.create_all()
 '''
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@www.captainnas.com:23306/DemoServerDB'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@127.0.0.1:23306/DemoServerDB'
 db = SQLAlchemy(app)
 
 
