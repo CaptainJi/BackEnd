@@ -10,7 +10,7 @@ from handleDB import db
 db.create_all()
 '''
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@119.8.60.213:23306/DemoServerDB'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@www.captainnas.com:23306/DemoServerDB'
 db = SQLAlchemy(app)
 
 
@@ -36,3 +36,16 @@ class TestCase(db.Model):
 
     def __repr__(self):
         return '<TestCase %r>' % self.casename
+
+
+# done:创建任务数据表
+class Task(db.Model):
+    __tablename__ = 'task'
+    id = db.Column(db.Integer, primary_key=True)
+    # tasknumber = db.Column(db.String(20), unique=True, nullable=False)
+    taskname = db.Column(db.String(80), unique=False, nullable=False)
+    # description = db.Column(db.String(1024), unique=False, nullable=False)
+    # tasktime = db.Column(db.String(20), unique=False, nullable=False)
+
+    def __repr__(self):
+        return '<Task %r>' % self.taskname

@@ -4,7 +4,7 @@ import requests
 
 
 class TestTestCaseApi():
-    def test_add(self):
+    def test_add_testcase(self):
         res = requests.post('http://127.0.0.1:5000/testcase',
                             json={
                                 # 'casename': f'name{str(datetime.datetime.now())}',
@@ -21,7 +21,7 @@ class TestTestCaseApi():
             'http://127.0.0.1:5000/testcase'
         )
         print(res.json())
-        assert res.status_code == 200
+        # assert res.status_code == 200
 
     def test_testcase_put(self):
         casename = '测试'
