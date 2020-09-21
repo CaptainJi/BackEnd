@@ -9,7 +9,7 @@ from tests.base_testcase import BaseTestCase
 
 class TestTask(BaseTestCase):
     def test_jenkins(self):
-        jenkins = Jenkins('http://www.captainnas.com:28080', username='admin',
+        jenkins = Jenkins('http://127.0.0.1:28080', username='admin',
                           password='110510b6c9f4b6ad083384608a0c3a3be9')
 
         jenkins['testcase'].invoke(securitytoken='110510b6c9f4b6ad083384608a0c3a3be9', build_params={

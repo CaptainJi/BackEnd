@@ -8,7 +8,7 @@ app = Flask(__name__)
 # 配置json转ASCII编码已解决返回json中中文的UTF-8编码问题
 app.config['JSON_AS_ASCII'] = False
 api = Api(app)
-jenkins = Jenkins('http://www.captainnas.com:28080', username='admin', password='110510b6c9f4b6ad083384608a0c3a3be9')
+jenkins = Jenkins('http://127.0.0.1:28080', username='admin', password='110510b6c9f4b6ad083384608a0c3a3be9')
 
 # 配置数据库
 '''
