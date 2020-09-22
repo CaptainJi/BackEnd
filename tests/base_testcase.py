@@ -1,7 +1,8 @@
 import requests
 
-
+# 用于获取token
 class BaseTestCase:
+
     def setup_class(self):
         username = 'captain'
         password = '1'

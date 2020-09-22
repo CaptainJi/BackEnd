@@ -2,8 +2,10 @@ import datetime
 
 import requests
 
+from tests.base_testcase import BaseTestCase
 
-class TestTestCaseApi():
+
+class TestTestCaseApi(BaseTestCase):
     def test_add_testcase(self):
         res = requests.post('http://127.0.0.1:5000/testcase',
                             json={
@@ -11,14 +13,16 @@ class TestTestCaseApi():
                                 'casename': '测试',
                                 'description': '测试数据',
                                 'data': 'test data'
-                            })
+                            },
+                            headers={'Authorization': f'Bearer {self.token}'})
         print(res.json())
         assert res.status_code == 200
         assert res.json()['msg'] == 'ok'
 
     def test_testcase_get(self):
         res = requests.get(
-            'http://127.0.0.1:5000/testcase'
+            'http://127.0.0.1:5000/testcase',
+            headers={'Authorization': f'Bearer {self.token}'}
         )
         print(res.json())
         # assert res.status_code == 200
@@ -36,7 +40,8 @@ class TestTestCaseApi():
                                'update_casename': update_casename,
                                'update_description': update_description,
                                'update_data': update_data
-                           })
+                           },
+                           headers={'Authorization': f'Bearer {self.token}'})
 
         print(res.json())
         assert res.status_code == 200
@@ -49,7 +54,8 @@ class TestTestCaseApi():
                               json={
                                   'casename': casename,
                                   'description': description,
-                              })
+                              },
+                              headers={'Authorization': f'Bearer {self.token}'})
         print(res.json())
         assert res.status_code == 200
         assert res.json()['msg'] == 'delete success'

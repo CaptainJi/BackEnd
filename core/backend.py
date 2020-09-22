@@ -1,14 +1,22 @@
+import yaml
 from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from flask_restful import Resource, Api
 from flask_sqlalchemy import SQLAlchemy
 from jenkinsapi.jenkins import Jenkins
 
+with open('../conf/config.yml', encoding='utf-8') as f:
+    config = yaml.safe_load(f)
+    db_conf = config['DB']
+    jenkins_conf = config['Jenkins']
+
 app = Flask(__name__)
 # 配置json转ASCII编码已解决返回json中中文的UTF-8编码问题
 app.config['JSON_AS_ASCII'] = False
 api = Api(app)
-jenkins = Jenkins('http://127.0.0.1:28080', username='admin', password='110510b6c9f4b6ad083384608a0c3a3be9')
+jenkins = Jenkins(f'http://{jenkins_conf["Host"]}:{jenkins_conf["Port"]}',
+                  username=jenkins_conf['username'],
+                  password=jenkins_conf['password'])
 
 # 配置数据库
 '''
@@ -17,7 +25,9 @@ Python Console中输入如下命令创建表
 from core.backend import db
 db.create_all()
 '''
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@127.0.0.1:23306/DemoServerDB'
+app.config[
+    'SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{db_conf["username"]}:{db_conf["password"]}@' \
+                                 f'{db_conf["Host"]}:{db_conf["Port"]}/{db_conf["DBname"]}'
 db = SQLAlchemy(app)
 # token管理
 app.config['JWT_SECRET_KEY'] = 'TestPlatform'
@@ -47,17 +57,20 @@ class TestCase(db.Model):
     def __repr__(self):
         return '<TestCase %r>' % self.casename
 
+
 # done:任务数据表
 class Task(db.Model):
     __tablename__ = 'task'
     id = db.Column(db.Integer, primary_key=True)
-    taskname = db.Column(db.String(20), unique=True, nullable=False)
-    # taskname = db.Column(db.String(80), unique=False, nullable=False)
+    # tasknumber = db.Column(db.String(20), unique=False, nullable=False)
+    taskname = db.Column(db.String(80), unique=True, nullable=False)
+
     # description = db.Column(db.String(1024), unique=False, nullable=False)
     # tasktime = db.Column(db.String(20), unique=False, nullable=False)
 
     def __repr__(self):
         return '<Task %r>' % self.taskname
+
 
 # 首页
 class HelloWorld(Resource):
@@ -67,10 +80,19 @@ class HelloWorld(Resource):
 
 # done:登录
 class LoginApi(Resource):
+    @jwt_required
     def get(self):
-        return {'Hello': 'World!'}
+        '''
+        :return:登录成功信息
+        '''
+        username = request.json.get('username', None)
+        return f'Welcome back ' + username
 
     def post(self):
+        '''
+        用户登录并生成token
+        :return:
+        '''
         # done: 查询数据库
         username = request.json.get('username', None)
         # todo: 通常密码不建议原文存储
@@ -78,7 +100,7 @@ class LoginApi(Resource):
         user = User.query.filter_by(username=username, password=password).first()
         # done: 生成返回结构体
         if user is None:
-            # 使用jsonify传回json体,输出中文
+            # 使用jsonify传回json体,输出中文需配置app.config['JSON_AS_ASCII'] = False
             return jsonify(
                 errcode=1,
                 errmsg='用户名或密码错'
@@ -96,6 +118,9 @@ class LoginApi(Resource):
 # done: 注册用户
 class RegisterApi(Resource):
     def post(self):
+        '''
+        :return: 注册成功信息
+        '''
         t = User(username=request.json['username'],
                  password=request.json['password'],
                  email=request.json['email'])
@@ -106,9 +131,14 @@ class RegisterApi(Resource):
         }
 
 
+# done:用例管理Api
 class TestCaseApi(Resource):
     @jwt_required
     def get(self):
+        '''
+        获取全部测试用例
+        :return: 测试用例
+        '''
         r = []
         for i in TestCase.query.all():
             res = {}
@@ -122,6 +152,7 @@ class TestCaseApi(Resource):
     @jwt_required
     def post(self):
         '''
+        添加测试用例
         测试命令:curl http://127.0.0.1:5000/testcase -d '{"casename":"testdemo","description":"test description","data":"test data"}' -H 'content-type: application/json
         :return:
         '''
@@ -135,8 +166,13 @@ class TestCaseApi(Resource):
         }
 
     # done:更新用例
+    # todo:完善用例查询,put仅用于更新
     @jwt_required
     def put(self):
+        '''
+        用例更新:先查找需要更新的用例,再更新内容;
+        :return:
+        '''
         casename = request.json.get('casename', None)
         description = request.json.get('description', None)
         update_casename = request.json.get('update_casename', None)
@@ -177,8 +213,8 @@ class TestCaseApi(Resource):
 
 # done:调度jenkins
 class TaskApi(Resource):
-    # @jwt_required
-    #done:查询所有任务
+    # done:查询所有任务
+    @jwt_required
     def get(self):
         r = []
         for i in Task.query.all():
@@ -187,16 +223,16 @@ class TaskApi(Resource):
             r.append(res)
         return r
 
+    # done:用例获取
     @jwt_required
     def post(self):
-        # done:用例获取
         testcases = request.json.get('testcases', None)
         jenkins['testcase'].invoke(securitytoken='110510b6c9f4b6ad083384608a0c3a3be9', build_params={
             'testcases': testcases
         })
-        # dome:任务添加入数据库
+        # done:任务添加入数据库
         t = Task(taskname=jenkins['testcase'].get_last_completed_build().get_number()
-        )
+                 )
         print(t)
         db.session.add(t)
         db.session.commit()
