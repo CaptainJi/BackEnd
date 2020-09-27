@@ -22,10 +22,16 @@ class TestTestCaseApi(BaseTestCase):
     def test_testcase_get(self):
         res = requests.get(
             'http://127.0.0.1:5000/testcase',
+            json={
+                # 'casename': f'name{str(datetime.datetime.now())}',
+                'casename': '测试',
+                'description': '测试数据',
+                'data': None
+            },
             headers={'Authorization': f'Bearer {self.token}'}
         )
         print(res.json())
-        # assert res.status_code == 200
+        assert res.status_code == 200
 
     def test_testcase_put(self):
         casename = '测试'

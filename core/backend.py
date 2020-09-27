@@ -1,5 +1,6 @@
 import yaml
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from flask_restful import Resource, Api
 from flask_sqlalchemy import SQLAlchemy
@@ -11,6 +12,8 @@ with open('../conf/config.yml', encoding='utf-8') as f:
     jenkins_conf = config['Jenkins']
 
 app = Flask(__name__)
+# 允许跨域访问
+CORS(app)
 # 配置json转ASCII编码已解决返回json中中文的UTF-8编码问题
 app.config['JSON_AS_ASCII'] = False
 api = Api(app)
@@ -74,8 +77,8 @@ class Task(db.Model):
 
 # 首页
 class HelloWorld(Resource):
-    def get(self):
-        return {'Hello': 'World!'}
+    def post(self):
+        return request.json.post()
 
 
 # done:登录

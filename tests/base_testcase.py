@@ -11,7 +11,7 @@ class BaseTestCase:
                                 'username': username,
                                 'password': password
                             })
-        print(res.text)
+        # print(res.text)
         assert res.status_code == 200
         self.token = res.json()['token']
         assert self.token is not None

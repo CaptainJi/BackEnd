@@ -10,7 +10,7 @@ from tests.base_testcase import BaseTestCase
 class TestTask(BaseTestCase):
     # 测试jenkins调度功能是否正常运行
     def test_jenkins(self):
-        jenkins = Jenkins('http://127.0.0.1:28080', username='admin',
+        jenkins = Jenkins('http://www.captainnas.com:28080', username='admin',
                           password='110510b6c9f4b6ad083384608a0c3a3be9')
 
         jenkins['testcase'].invoke(securitytoken='110510b6c9f4b6ad083384608a0c3a3be9', build_params={
@@ -18,15 +18,18 @@ class TestTask(BaseTestCase):
         })
 
         print(jenkins['testcase'].get_last_completed_build().get_console())
+        print(jenkins.get_jobs_list())
+        print(jenkins.keys())
 
     # 发起jenkins构建请求
     def test_task_post(self):
         # 获取上一次成功构建号码
         pre = jenkins['testcase'].get_last_build().get_number()
-        res = requests.post('http://127.0.0.1:5000/task',
-                            json={'testcases': 'sub_dir'},
-                            headers={'Authorization': f'Bearer {self.token}'}
-                            )
+        res = requests.get \
+            ('http://127.0.0.1:5000/task',
+             json={'testcases': 'sub_dir'},
+             headers={'Authorization': f'Bearer {self.token}'}
+             )
         assert res.status_code == 200
         # 判断当前是否有项目正在构建
         for i in range(10):
